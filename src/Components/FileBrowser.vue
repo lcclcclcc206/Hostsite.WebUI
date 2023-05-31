@@ -9,11 +9,11 @@ interface DirOption {
     value: string;
 }
 
-interface file {
+interface File {
     isfile: boolean;
     name: string;
-    size: string;
-    modified: string;
+    size: number;
+    modified: Date;
 }
 
 const base_url = '/api/filebrowser';
@@ -21,7 +21,8 @@ const base_url = '/api/filebrowser';
 let selectedDir: Ref<string | null> = ref(null);
 let relativePathStack: Ref<string[]> = ref([]);
 let dirAccessOptions: Ref<DirOption[]> = ref([]);
-let tableData: Ref<file[]> = ref([]);
+let tableData_dir: Ref<File[]> = ref([]);
+let tableData_file: Ref<File[]> = ref([]);
 let pagination = ref({
     page: 1,
     pageSize: 20,
@@ -36,55 +37,101 @@ let pagination = ref({
     }
 })
 
-let tableColumns = [
+let tableColumns_dir = [
     {
-        title: '名称',
+        title: '目录',
         key: 'name',
         width: '400px',
         align: 'left',
-        render: (data: file, _: number) => {
+        render: (data: File, _: number) => {
             let name = data.name;
-            let query = `?file=${encodeURIComponent(name)}`;
-            if (relativePathStack.value.length > 0) {
-                query = `?file=${encodeURIComponent(name)}&relative_path=${encodeURIComponent(relativePathStack.value.join('/'))}`;
-            }
-            if (data.isfile) {
-                return h(
-                    'a',
-                    {
-                        href: `${base_url}/${selectedDir.value as string}/download${query}`,
-                        class: 'dowloadlink',
-                        target: '_blank'
+            return h(
+                'a',
+                {
+                    href: "javascript:void(0);",
+                    onClick(event: Event) {
+                        enter_dir(name);
                     },
-                    name
-                );
-            }
-            else {
-                return h(
-                    'a',
-                    {
-                        href: "javascript:void(0);",
-                        onClick(event: Event) {
-                            enter_dir(name);
-                        },
-                        class: 'dirlink'
-                    },
-                    name + '/'
-                );
-            }
-        }
+                    class: 'dirlink'
+                },
+                name + '/'
+            );
+        },
+        sorter: 'default'
     },
     {
         title: '大小',
         key: 'size',
         width: '150px',
-        align: 'right'
+        align: 'right',
+        render: (_1: File, _2: number) => {
+            return '';
+        }
     },
     {
         title: '修改时间',
         key: 'modified',
         width: '200px',
-        align: 'right'
+        align: 'right',
+        render: (data: File, _: number) => {
+            return data.modified.toLocaleString();
+        },
+        sorter: (file1:File,file2:File) => 
+        {
+            return file1.modified > file2.modified;
+        }
+    }
+]
+
+let tableColumns_file = [
+    {
+        title: '名称',
+        key: 'name',
+        width: '400px',
+        align: 'left',
+        render: (data: File, _: number) => {
+            let name = data.name;
+            let query = `?file=${encodeURIComponent(name)}`;
+            if (relativePathStack.value.length > 0) {
+                query = `?file=${encodeURIComponent(name)}&relative_path=${encodeURIComponent(relativePathStack.value.join('/'))}`;
+            }
+            return h(
+                'a',
+                {
+                    href: `${base_url}/${selectedDir.value as string}/download${query}`,
+                    class: 'dowloadlink',
+                    target: '_blank'
+                },
+                name
+            );
+        },
+        sorter: 'default'
+    },
+    {
+        title: '大小',
+        key: 'size',
+        width: '150px',
+        align: 'right',
+        render: (data: File, _: number) => {
+            return filesize(data.size) as string;
+        },
+        sorter: (file1:File,file2:File) => 
+        {
+            return file1.size > file2.size;
+        }
+    },
+    {
+        title: '修改时间',
+        key: 'modified',
+        width: '200px',
+        align: 'right',
+        render: (data: File, _: number) => {
+            return data.modified.toLocaleString();
+        },
+        sorter: (file1:File,file2:File) => 
+        {
+            return file1.modified > file2.modified;
+        }
     }
 ]
 
@@ -108,7 +155,8 @@ function init_DirAccessList() {
 }
 
 function update_FileTable() {
-    tableData.value = [];
+    tableData_dir.value = [];
+    tableData_file.value = [];
     let query = '';
     if (relativePathStack.value.length > 0) {
         query = `?relative_path=${encodeURIComponent(relativePathStack.value.join('/'))}`;
@@ -119,20 +167,20 @@ function update_FileTable() {
             let fileList = response.data['filelist'];
             for (let dir of dirList) {
                 let time = new Date(dir['modify_time'] * 1000);
-                tableData.value.push({
+                tableData_dir.value.push({
                     isfile: dir['is_file'],
                     name: dir['name'],
-                    modified: time.toLocaleString(),
-                    size: ''
+                    modified: time,
+                    size: dir['file_size']
                 });
             }
             for (let file of fileList) {
                 let time = new Date(file['modify_time'] * 1000);
-                tableData.value.push({
+                tableData_file.value.push({
                     isfile: file['is_file'],
                     name: file['name'],
-                    modified: time.toLocaleString(),
-                    size: filesize(file['file_size']) as string
+                    modified: time,
+                    size: file['file_size']
                 });
             }
         }
@@ -183,12 +231,13 @@ init_DirAccessList();
             </div>
         </div>
         <n-divider />
-        <n-breadcrumb style="margin-bottom: 12px;" >
+        <n-breadcrumb style="margin-bottom: 12px;">
             <n-breadcrumb-item v-for="(item, index) in relativePathStack" @click="return_superior(index)">
                 {{ item }}
             </n-breadcrumb-item>
         </n-breadcrumb>
-        <n-data-table :columns="tableColumns" :data="tableData" :pagination="pagination" @update:sorter="" />
+        <n-data-table :columns="tableColumns_dir" :data="tableData_dir" />
+        <n-data-table :columns="tableColumns_file" :data="tableData_file" :pagination="pagination" />
     </main>
 </template>
 

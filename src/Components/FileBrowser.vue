@@ -44,9 +44,9 @@ let tableColumns = [
         align: 'left',
         render: (data: file, _: number) => {
             let name = data.name;
-            let query = `?file=${encodeURI(name)}`;
+            let query = `?file=${encodeURIComponent(name)}`;
             if (relativePathStack.value.length > 0) {
-                query = encodeURI(`?file=${encodeURI(name)}&relative_path=${relativePathStack.value.join('/')}`);
+                query = `?file=${encodeURIComponent(name)}&relative_path=${encodeURIComponent(relativePathStack.value.join('/'))}`;
             }
             if (data.isfile) {
                 return h(
@@ -111,7 +111,7 @@ function update_FileTable() {
     tableData.value = [];
     let query = '';
     if (relativePathStack.value.length > 0) {
-        query = encodeURI(`?relative_path=${relativePathStack.value.join('/')}`);
+        query = `?relative_path=${encodeURIComponent(relativePathStack.value.join('/'))}`;
     }
     return axios.get(`${base_url}/${selectedDir.value as string}/info${query}`).then(
         function (response) {

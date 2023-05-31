@@ -69,7 +69,7 @@ let tableColumns = [
                         },
                         class: 'dirlink'
                     },
-                    name
+                    name + '/'
                 );
             }
         }
@@ -121,7 +121,7 @@ function update_FileTable() {
                 let time = new Date(dir['modify_time'] * 1000);
                 tableData.value.push({
                     isfile: dir['is_file'],
-                    name: dir['name'] + '/',
+                    name: dir['name'],
                     modified: time.toLocaleString(),
                     size: ''
                 });
@@ -150,8 +150,13 @@ function enter_dir(dirname: string) {
     update_FileTable();
 }
 
-function return_superior() {
-    relativePathStack.value.pop();
+function return_superior(index?: number) {
+    if (index) {
+        relativePathStack.value = relativePathStack.value.slice(0, index + 1);
+    }
+    else {
+        relativePathStack.value.pop();
+    }
     update_FileTable();
 }
 
@@ -167,7 +172,7 @@ init_DirAccessList();
             @update:value="select_Dir" />
         <div style="margin-top: 12px;display: flex;justify-content: space-between;">
             <div>
-                <n-button v-if="relativePathStack.length != 0" @click="return_superior">
+                <n-button v-if="relativePathStack.length != 0" @click="return_superior()">
                     返回上级
                 </n-button>
             </div>
@@ -178,12 +183,18 @@ init_DirAccessList();
             </div>
         </div>
         <n-divider />
-        <n-data-table :columns="tableColumns" :data="tableData" :pagination="pagination" @update:sorter=""/>
+        <n-breadcrumb style="margin-bottom: 12px;" >
+            <n-breadcrumb-item v-for="(item, index) in relativePathStack" @click="return_superior(index)">
+                {{ item }}
+            </n-breadcrumb-item>
+        </n-breadcrumb>
+        <n-data-table :columns="tableColumns" :data="tableData" :pagination="pagination" @update:sorter="" />
     </main>
 </template>
 
 <style scoped>
 :deep(.dirlink) {
+    color: rgb(0, 178, 119);
     text-decoration: none;
 }
 

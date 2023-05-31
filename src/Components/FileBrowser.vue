@@ -85,7 +85,7 @@ let tableColumns_dir = [
 
 let tableColumns_file = [
     {
-        title: '名称',
+        title: '文件名',
         key: 'name',
         width: '400px',
         align: 'left',
@@ -199,7 +199,7 @@ function enter_dir(dirname: string) {
 }
 
 function return_superior(index?: number) {
-    if (index) {
+    if (typeof(index) === 'number') {
         relativePathStack.value = relativePathStack.value.slice(0, index + 1);
     }
     else {

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { h, ref, type Ref } from 'vue';
+import { h, ref, type Ref, watch } from 'vue';
 import axios from 'axios';
 import { filesize } from 'filesize'
-import { type SelectOption } from 'naive-ui'
+import { NButton, type SelectOption, type UploadFileInfo } from 'naive-ui'
 
 interface DirOption {
     label: string;
@@ -18,8 +18,9 @@ interface File {
 
 const base_url = '/api/filebrowser';
 
-let selectedDir: Ref<string | null> = ref(null);
-let relativePathStack: Ref<string[]> = ref([]);
+let selectedDir: Ref<string | null> = ref(window.localStorage.getItem('selectedDir'));
+let temp_rpStack = window.localStorage.getItem('relativePathStack');
+let relativePathStack: Ref<string[]> = ref(temp_rpStack == null || temp_rpStack.length == 0 ? [] : temp_rpStack!.split('/'));
 let dirAccessOptions: Ref<DirOption[]> = ref([]);
 let tableData_dir: Ref<File[]> = ref([]);
 let tableData_file: Ref<File[]> = ref([]);
@@ -35,7 +36,21 @@ let pagination = ref({
         pagination.value.pageSize = pageSize
         pagination.value.page = 1
     }
-})
+});
+
+let pagination_dir = ref({
+    page: 1,
+    pageSize: 4,
+    showSizePicker: true,
+    pageSizes: [4, 6, 8, 12, 16, 32],
+    onChange: (page: number) => {
+        pagination_dir.value.page = page
+    },
+    onUpdatePageSize: (pageSize: number) => {
+        pagination_dir.value.pageSize = pageSize
+        pagination_dir.value.page = 1
+    }
+});
 
 let tableColumns_dir = [
     {
@@ -76,10 +91,15 @@ let tableColumns_dir = [
         render: (data: File, _: number) => {
             return data.modified.toLocaleString();
         },
-        sorter: (file1:File,file2:File) => 
-        {
+        sorter: (file1: File, file2: File) => {
             return file1.modified > file2.modified;
         }
+    },
+    {
+        title: '操作',
+        key: 'operation',
+        width: '150px',
+        align: 'right'
     }
 ]
 
@@ -115,8 +135,7 @@ let tableColumns_file = [
         render: (data: File, _: number) => {
             return filesize(data.size) as string;
         },
-        sorter: (file1:File,file2:File) => 
-        {
+        sorter: (file1: File, file2: File) => {
             return file1.size > file2.size;
         }
     },
@@ -128,9 +147,29 @@ let tableColumns_file = [
         render: (data: File, _: number) => {
             return data.modified.toLocaleString();
         },
-        sorter: (file1:File,file2:File) => 
-        {
+        sorter: (file1: File, file2: File) => {
             return file1.modified > file2.modified;
+        }
+    },
+    {
+        title: '操作',
+        key: 'operation',
+        width: '150px',
+        align: 'right',
+        render: (data: File, _: number) => {
+            return h(NButton, {
+                type: 'info',
+                onClick: () => {
+                    let dirname = selectedDir.value;
+                    let filename = data.name;
+                    let relativepath = relativePathStack.value.join('/');
+
+                    axios.post(`${base_url}/${dirname}/delete?filename=${encodeURIComponent(filename)}&relative_path=${encodeURIComponent(relativepath)}`)
+                        .then(_ => {
+                            update_FileTable();
+                        });
+                }
+            }, { default: () => '删除' });
         }
     }
 ]
@@ -189,26 +228,34 @@ function update_FileTable() {
 
 function select_Dir(value: string, _: SelectOption) {
     selectedDir.value = value;
+    window.localStorage.setItem('selectedDir', value);
     relativePathStack.value = [];
+    window.localStorage.removeItem('relativePathStack');
     update_FileTable();
 }
 
 function enter_dir(dirname: string) {
     relativePathStack.value.push(dirname);
+    window.localStorage.setItem('relativePathStack', relativePathStack.value.join('/'));
     update_FileTable();
 }
 
 function return_superior(index?: number) {
-    if (typeof(index) === 'number') {
+    if (typeof (index) === 'number') {
         relativePathStack.value = relativePathStack.value.slice(0, index + 1);
     }
     else {
         relativePathStack.value.pop();
     }
+    window.localStorage.setItem('relativePathStack', relativePathStack.value.join('/'));
     update_FileTable();
 }
 
 init_DirAccessList();
+if (selectedDir.value != null) {
+    update_FileTable();
+}
+
 </script>
 
 <template>
@@ -225,9 +272,12 @@ init_DirAccessList();
                 </n-button>
             </div>
             <div>
-                <n-button>
-                    上传文件
-                </n-button>
+                <n-upload v-if="selectedDir != null" multiple
+                    :action='`${base_url}/${selectedDir}/upload?relative_path=${encodeURIComponent(relativePathStack.join("/"))}`'>
+                    <n-button>
+                        上传文件
+                    </n-button>
+                </n-upload>
             </div>
         </div>
         <n-divider />
@@ -236,8 +286,14 @@ init_DirAccessList();
                 {{ item }}
             </n-breadcrumb-item>
         </n-breadcrumb>
-        <n-data-table :columns="tableColumns_dir" :data="tableData_dir" />
-        <n-data-table :columns="tableColumns_file" :data="tableData_file" :pagination="pagination" />
+        <n-collapse :default-expanded-names="['1', '2']">
+            <n-collapse-item v-if="tableData_dir.length != 0" title="目录" name="1">
+                <n-data-table :columns="tableColumns_dir" :data="tableData_dir" :pagination="pagination_dir" />
+            </n-collapse-item>
+            <n-collapse-item title="文件" name="2">
+                <n-data-table :columns="tableColumns_file" :data="tableData_file" :pagination="pagination" />
+            </n-collapse-item>
+        </n-collapse>
     </main>
 </template>
 

@@ -33,7 +33,7 @@ import { zhCN, dateZhCN } from 'naive-ui'
 
 <style scoped>
 .n-layout-header {
-  background: rgba(128, 128, 128, 0.2);
+  background: rgba(255, 255, 255, 0.2);
   padding: 12px;
 }
 

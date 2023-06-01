@@ -119,8 +119,7 @@ let tableColumns_file = [
                 'a',
                 {
                     href: `${base_url}/${selectedDir.value as string}/download${query}`,
-                    class: 'dowloadlink',
-                    target: '_blank'
+                    class: 'dowloadlink'
                 },
                 name
             );

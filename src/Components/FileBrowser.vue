@@ -40,9 +40,9 @@ let pagination = ref({
 
 let pagination_dir = ref({
     page: 1,
-    pageSize: 4,
+    pageSize: 8,
     showSizePicker: true,
-    pageSizes: [4, 6, 8, 12, 16, 32],
+    pageSizes: [4, 8, 12, 16, 32],
     onChange: (page: number) => {
         pagination_dir.value.page = page
     },
@@ -163,7 +163,7 @@ let tableColumns_file = [
                     let filename = data.name;
                     let relativepath = relativePathStack.value.join('/');
 
-                    axios.post(`${base_url}/${dirname}/delete?filename=${encodeURIComponent(filename)}&relative_path=${encodeURIComponent(relativepath)}`)
+                    axios.post(`${base_url}/${dirname}/delete?file=${encodeURIComponent(filename)}&relative_path=${encodeURIComponent(relativepath)}`)
                         .then(_ => {
                             update_FileTable();
                         });

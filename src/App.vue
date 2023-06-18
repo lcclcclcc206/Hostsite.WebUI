@@ -22,7 +22,7 @@ import { zhCN, dateZhCN } from 'naive-ui'
             </n-message-provider>
           </n-layout-content>
           <n-layout-footer bordered>
-            这里是页脚
+            Servered by lcc206 
           </n-layout-footer>
         </n-layout>
       </n-space>

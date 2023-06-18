@@ -4,6 +4,7 @@ import axios from 'axios';
 import { filesize } from 'filesize'
 import { NButton, type SelectOption, type UploadFileInfo } from 'naive-ui'
 
+//#region type
 interface DirOption {
     label: string;
     value: string;
@@ -15,13 +16,18 @@ interface File {
     size: number;
     modified: Date;
 }
+//#endregion
 
+//#region filebrowser_properties
 const base_url = '/api/filebrowser';
 
 let selectedDir: Ref<string | null> = ref(window.localStorage.getItem('selectedDir'));
 let temp_rpStack = window.localStorage.getItem('relativePathStack');
 let relativePathStack: Ref<string[]> = ref(temp_rpStack == null || temp_rpStack.length == 0 ? [] : temp_rpStack!.split('/'));
 let dirAccessOptions: Ref<DirOption[]> = ref([]);
+//#endregion
+
+//#region table_properties
 let tableData_dir: Ref<File[]> = ref([]);
 let tableData_file: Ref<File[]> = ref([]);
 let pagination = ref({
@@ -156,8 +162,19 @@ let tableColumns_file = [
         width: '150px',
         align: 'right',
         render: (data: File, _: number) => {
-            return h(NButton, {
+            let download_button = h(NButton, {
                 type: 'info',
+                onClick: () => {
+                    let name = data.name;
+                    let path = `file=${encodeURIComponent(name)}`;
+                    if (relativePathStack.value.length > 0) {
+                        path = `file=${encodeURIComponent(name)}&relative_path=${encodeURIComponent(relativePathStack.value.join('/'))}`;
+                    }
+                    window.location.href = `${base_url}/${selectedDir.value as string}/download?inline=false&${path}`;
+                }
+            }, { default: () => '下载' });
+            let delete_button = h(NButton, {
+                type: 'error',
                 onClick: () => {
                     let dirname = selectedDir.value;
                     let filename = data.name;
@@ -167,12 +184,19 @@ let tableColumns_file = [
                         .then(_ => {
                             update_FileTable();
                         });
-                }
+                },
+                style: "margin-left: 10px"
             }, { default: () => '删除' });
+            let div = h('div', {
+                style: "display: flex;justify-content: flex-end;"
+            }, [download_button, delete_button]);
+            return div;
         }
     }
 ]
+//#endregion
 
+//#region filebrowser_function
 function init_DirAccessList() {
     return axios.get(base_url).then(
         function (response) {
@@ -192,6 +216,19 @@ function init_DirAccessList() {
     )
 }
 
+function return_superior(index?: number) {
+    if (typeof (index) === 'number') {
+        relativePathStack.value = relativePathStack.value.slice(0, index + 1);
+    }
+    else {
+        relativePathStack.value.pop();
+    }
+    window.localStorage.setItem('relativePathStack', relativePathStack.value.join('/'));
+    update_FileTable();
+}
+//#endregion
+
+//#region function_filetable
 function update_FileTable() {
     tableData_dir.value = [];
     tableData_file.value = [];
@@ -238,17 +275,7 @@ function enter_dir(dirname: string) {
     window.localStorage.setItem('relativePathStack', relativePathStack.value.join('/'));
     update_FileTable();
 }
-
-function return_superior(index?: number) {
-    if (typeof (index) === 'number') {
-        relativePathStack.value = relativePathStack.value.slice(0, index + 1);
-    }
-    else {
-        relativePathStack.value.pop();
-    }
-    window.localStorage.setItem('relativePathStack', relativePathStack.value.join('/'));
-    update_FileTable();
-}
+//#endregion
 
 init_DirAccessList();
 if (selectedDir.value != null) {

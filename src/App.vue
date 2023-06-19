@@ -1,28 +1,34 @@
 <script setup lang="ts">
+import type { RouterLink } from 'vue-router';
 import FileBrowser from './Components/FileBrowser.vue';
+import Home from './Components/Home.vue';
 import { NConfigProvider } from 'naive-ui'
 import { zhCN, dateZhCN } from 'naive-ui'
 </script>
 
 <template>
-  <header>
-  </header>
   <main>
     <n-config-provider :locale="zhCN" :date-locale="dateZhCN">
       <n-space vertical size="large">
         <n-layout>
           <n-layout-header bordered>
-            <h2>
-              Hostsite
-            </h2>
+            <nav class="navbar">
+              <span>
+                <RouterLink to="/home" class="logo">Hostsite</RouterLink>
+              </span>
+              <span class="navbar-content">
+                <RouterLink to="/home">主页</RouterLink>
+                <RouterLink to="/filebrowser">文件浏览</RouterLink>
+              </span>
+            </nav>
           </n-layout-header>
           <n-layout-content bordered content-style="padding: 24px;">
             <n-message-provider>
-              <FileBrowser></FileBrowser>
+              <RouterView />
             </n-message-provider>
           </n-layout-content>
           <n-layout-footer bordered>
-            Servered by lcc206 
+            Servered by lcc206
           </n-layout-footer>
         </n-layout>
       </n-space>
@@ -44,5 +50,35 @@ import { zhCN, dateZhCN } from 'naive-ui'
 
 .n-layout-content {
   background: rgba(255, 255, 255, 0.4);
+}
+
+.navbar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.navbar>* {
+  margin-right: 24px;
+}
+
+.navbar-content {
+  display: flex;
+  justify-content: flex-start;
+  flex-grow: 1;
+}
+
+.navbar-content>* {
+  text-decoration: none;
+  margin-right: 18px;
+  font-size: 1.2em;
+  color: rgb(0, 0, 0);
+}
+
+.logo {
+  font-size: 2em;
+  font-weight: bold;
+  color: rgb(27, 127, 173);
+  text-decoration: none;
 }
 </style>

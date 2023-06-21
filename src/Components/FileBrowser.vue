@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { h, ref, type Ref, watch } from 'vue';
+import { h, ref, type Ref } from 'vue';
 import axios from 'axios';
 import { filesize } from 'filesize'
-import { NButton, type SelectOption, type UploadFileInfo } from 'naive-ui'
+import { NButton, type SelectOption } from 'naive-ui'
 
 //#region type
 interface DirOption {

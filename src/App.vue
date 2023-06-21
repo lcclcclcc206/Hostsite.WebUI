@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import type { RouterLink } from 'vue-router';
-import FileBrowser from './Components/FileBrowser.vue';
-import Home from './Components/Home.vue';
+import { NButton, NModal } from 'naive-ui'
 import { NConfigProvider } from 'naive-ui'
 import { zhCN, dateZhCN } from 'naive-ui'
+import { ref } from 'vue';
+import LoginPanel from './Components/LoginPanel.vue';
+
+let show_loginModal = ref(false);
+
 </script>
 
 <template>
@@ -19,13 +23,19 @@ import { zhCN, dateZhCN } from 'naive-ui'
               <span class="navbar-content">
                 <RouterLink to="/home">主页</RouterLink>
                 <RouterLink to="/filebrowser">文件浏览</RouterLink>
+                <RouterLink to="/login">登录页</RouterLink>
+              </span>
+              <span class="navbar-entry">
+                <n-button text @click="show_loginModal = true">登录</n-button>
+                <span>设置</span>
               </span>
             </nav>
           </n-layout-header>
           <n-layout-content bordered content-style="padding: 24px;">
-            <n-message-provider>
-              <RouterView />
-            </n-message-provider>
+            <n-modal v-model:show="show_loginModal">
+              <LoginPanel />
+            </n-modal>
+            <RouterView />
           </n-layout-content>
           <n-layout-footer bordered>
             Servered by lcc206
@@ -74,6 +84,19 @@ import { zhCN, dateZhCN } from 'naive-ui'
   font-size: 1.2em;
   color: rgb(0, 0, 0);
 }
+
+.navbar-entry {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.navbar-entry>* {
+  text-decoration: none;
+  margin-left: 18px;
+  font-size: 1.2em;
+  color: rgb(0, 0, 0);
+}
+
 
 .logo {
   font-size: 2em;

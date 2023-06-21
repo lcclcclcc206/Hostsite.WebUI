@@ -4,6 +4,7 @@ import App from './App.vue'
 import { createRouter, createWebHashHistory, type RouterOptions } from 'vue-router'
 import FileBrowser from './Components/FileBrowser.vue'
 import Home from './Components/Home.vue'
+import LoginPanel from './Components/LoginPanel.vue'
 
 
 let router_option: RouterOptions = {
@@ -17,6 +18,9 @@ let router_option: RouterOptions = {
         },
         {
             path: '/filebrowser', component: FileBrowser
+        },
+        {
+            path: '/login', component: LoginPanel
         }
     ]
 };

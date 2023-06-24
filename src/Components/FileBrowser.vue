@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { h, ref, type Ref } from 'vue';
+import { h, inject, ref, type Ref} from 'vue';
 import axios from 'axios';
 import { filesize } from 'filesize'
-import { NButton, type SelectOption } from 'naive-ui'
+import { NButton, type SelectOption} from 'naive-ui'
+import { type IToken } from '../Utils/interfaces'
 
 //#region type
 interface DirOption {
@@ -19,7 +20,9 @@ interface File {
 //#endregion
 
 //#region filebrowser_properties
-const base_url = '/api/filebrowser';
+const BASE_URL = '/api/filebrowser';
+
+let token = inject('token') as Ref<IToken | null>;
 
 let selectedDir: Ref<string | null> = ref(window.localStorage.getItem('selectedDir'));
 let temp_rpStack = window.localStorage.getItem('relativePathStack');
@@ -28,6 +31,7 @@ let dirAccessOptions: Ref<DirOption[]> = ref([]);
 //#endregion
 
 //#region table_properties
+const file_table = ref(null);
 let tableData_dir: Ref<File[]> = ref([]);
 let tableData_file: Ref<File[]> = ref([]);
 let pagination = ref({
@@ -124,7 +128,7 @@ let tableColumns_file = [
             return h(
                 'a',
                 {
-                    href: `${base_url}/${selectedDir.value as string}/download${query}`,
+                    href: `${BASE_URL}/${selectedDir.value as string}/download${query}`,
                     class: 'dowloadlink'
                 },
                 name
@@ -170,7 +174,7 @@ let tableColumns_file = [
                     if (relativePathStack.value.length > 0) {
                         path = `file=${encodeURIComponent(name)}&relative_path=${encodeURIComponent(relativePathStack.value.join('/'))}`;
                     }
-                    window.location.href = `${base_url}/${selectedDir.value as string}/download?inline=false&${path}`;
+                    window.location.href = `${BASE_URL}/${selectedDir.value as string}/download?inline=false&${path}`;
                 }
             }, { default: () => '下载' });
             let delete_button = h(NButton, {
@@ -180,16 +184,19 @@ let tableColumns_file = [
                     let filename = data.name;
                     let relativepath = relativePathStack.value.join('/');
 
-                    axios.post(`${base_url}/${dirname}/delete?file=${encodeURIComponent(filename)}&relative_path=${encodeURIComponent(relativepath)}`)
+                    axios.post(`${BASE_URL}/${dirname}/delete?file=${encodeURIComponent(filename)}&relative_path=${encodeURIComponent(relativepath)}`)
                         .then(_ => {
                             update_FileTable();
                         });
                 },
                 style: "margin-left: 10px"
             }, { default: () => '删除' });
+            let operation_list = [download_button];
+            if (token.value != null)
+                operation_list.push(delete_button);
             let div = h('div', {
                 style: "display: flex;justify-content: flex-end;"
-            }, [download_button, delete_button]);
+            }, operation_list);
             return div;
         }
     }
@@ -198,7 +205,7 @@ let tableColumns_file = [
 
 //#region filebrowser_function
 function init_DirAccessList() {
-    return axios.get(base_url).then(
+    return axios.get(BASE_URL).then(
         function (response) {
             let data = response.data;
             let list: string[] = data;
@@ -236,7 +243,7 @@ function update_FileTable() {
     if (relativePathStack.value.length > 0) {
         query = `?relative_path=${encodeURIComponent(relativePathStack.value.join('/'))}`;
     }
-    return axios.get(`${base_url}/${selectedDir.value as string}/info${query}`).then(
+    return axios.get(`${BASE_URL}/${selectedDir.value as string}/info${query}`).then(
         function (response) {
             let dirList = response.data['dirlist'];
             let fileList = response.data['filelist'];
@@ -288,7 +295,7 @@ if (selectedDir.value != null) {
     <header>
     </header>
     <main>
-        <h2>FileBrowser</h2>
+        <h2 v-if="token != null">FileBrowser</h2>
         <n-select style="width: 200px;" placeholder="选择文件夹" v-model:value="selectedDir" :options="dirAccessOptions"
             @update:value="select_Dir" />
         <div style="margin-top: 12px;display: flex;justify-content: space-between;">
@@ -298,8 +305,9 @@ if (selectedDir.value != null) {
                 </n-button>
             </div>
             <div>
-                <n-upload v-if="selectedDir != null" multiple
-                    :action='`${base_url}/${selectedDir}/upload?relative_path=${encodeURIComponent(relativePathStack.join("/"))}`'>
+                <n-upload v-if="selectedDir != null && token != null" multiple
+                    :action='`${BASE_URL}/${selectedDir}/upload?relative_path=${encodeURIComponent(relativePathStack.join("/"))}`'
+                    :headers="{'Authorization': `${token?.token_type} ${token?.access_token}`}">
                     <n-button>
                         上传文件
                     </n-button>

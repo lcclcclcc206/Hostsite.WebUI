@@ -1,13 +1,43 @@
 <script setup lang="ts">
 import type { RouterLink } from 'vue-router';
-import { NButton, NModal } from 'naive-ui'
-import { NConfigProvider } from 'naive-ui'
+import { NButton, NModal, NDropdown } from 'naive-ui'
+import { NConfigProvider, NMessageProvider } from 'naive-ui'
 import { zhCN, dateZhCN } from 'naive-ui'
-import { ref } from 'vue';
+import { ref, provide, type Ref } from 'vue';
 import LoginPanel from './Components/LoginPanel.vue';
+import { type IToken } from './Utils/interfaces'
+import { get_token, update_token, is_token_needto_refresh } from './Utils/authentication'
+
+const user_options = [
+  {
+    label: '退出登录',
+    key: 'logout',
+  }
+];
+
+let token: Ref<IToken | null> = ref(get_token());
+if (token.value != null && is_token_needto_refresh(token.value))
+  update_token(token.value, () => {
+    console.log('令牌刷新成功');
+  }, () => {
+    token.value = null;
+    console.log('令牌已失效，请重新登录');
+  });
 
 let show_loginModal = ref(false);
 
+provide('token', token);
+
+function login_success_operation() {
+  show_loginModal.value = false;
+}
+
+function handle_user_select_option(key: string) {
+  if (key == 'logout') {
+    token.value = null;
+    localStorage.removeItem('token');
+  }
+}
 </script>
 
 <template>
@@ -23,18 +53,21 @@ let show_loginModal = ref(false);
               <span class="navbar-content">
                 <RouterLink to="/home">主页</RouterLink>
                 <RouterLink to="/filebrowser">文件浏览</RouterLink>
-                <RouterLink to="/login">登录页</RouterLink>
               </span>
               <span class="navbar-entry">
-                <n-button text @click="show_loginModal = true">登录</n-button>
-                <span>设置</span>
+                <NButton v-if="token == null" text @click="show_loginModal = true">登录</NButton>
+                <NDropdown v-if="token != null" :options="user_options" @select="handle_user_select_option">
+                  <NButton text v-html="token.username" />
+                </NDropdown>
               </span>
             </nav>
           </n-layout-header>
           <n-layout-content bordered content-style="padding: 24px;">
-            <n-modal v-model:show="show_loginModal">
-              <LoginPanel />
-            </n-modal>
+            <NMessageProvider>
+              <n-modal v-model:show="show_loginModal">
+                <LoginPanel @login_sucess="login_success_operation" />
+              </n-modal>
+            </NMessageProvider>
             <RouterView />
           </n-layout-content>
           <n-layout-footer bordered>
@@ -100,7 +133,7 @@ let show_loginModal = ref(false);
 
 .logo {
   font-size: 2em;
-  font-weight: bold;
+  font-weight: 300;
   color: rgb(27, 127, 173);
   text-decoration: none;
 }

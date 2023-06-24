@@ -1,19 +1,54 @@
 <script setup lang="ts">
-import { NButton, NForm, NFormItem, NInput } from 'naive-ui'
-import { ref, type Ref } from 'vue';
+import axios from 'axios';
+import { NButton, NForm, NFormItem, NInput, useMessage } from 'naive-ui'
+import { inject, ref, type Ref } from 'vue';
+import { type IToken } from '../Utils/interfaces'
 
 interface LoginForm {
     username: string;
     password: string;
 }
 
+const emit = defineEmits<{
+    (e: 'login_sucess'): void
+}>()
+
+const base_url = '/api/filebrowser';
+const message = useMessage();
+let token = inject('token') as Ref<IToken | null>;
+
 let loginForm: Ref<LoginForm> = ref({
     username: '',
     password: ''
 });
+let login_button_disabled = ref(false);
 
 function login() {
-    console.log(JSON.stringify(loginForm.value));
+    let form_data = new FormData();
+    let data = loginForm.value;
+    form_data.append('username', data.username);
+    form_data.append('password', data.password);
+
+    axios({
+        method: 'post',
+        url: `${base_url}/token`,
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        withCredentials: true,
+        data: loginForm.value
+    }).then((res) => {
+        // 如果认证成功，存储令牌，显示登录成功，关闭登陆界面，将登录按钮替换为用户
+        let token_value = res.data as IToken;
+        localStorage.setItem("token", JSON.stringify(token_value));
+        token.value = res.data;
+        message.success("登录成功", { duration: 2000 });
+        emit('login_sucess');
+
+    }).catch(function (error) {
+        if (error.response.status == 401)
+            message.error("登录失败，用户名或密码错误！", { duration: 2000 });
+    })
 }
 
 </script>
@@ -31,10 +66,16 @@ function login() {
             <n-form-item label="密码" path="password">
                 <n-input type="password" v-model:value="loginForm.password" placeholder="输入密码" />
             </n-form-item>
+            <n-form-item :show-label="false" :show-feedback="false">
+                <div style="width: 100%; display: flex; justify-content: center;">
+                    <n-button class="submit-button" style="justify-self: center;" @click="login"
+                        :disabled="login_button_disabled">
+                        登录
+                    </n-button>
+                </div>
+            </n-form-item>
         </n-form>
-        <n-button @click="login">
-            登录
-        </n-button>
+
     </div>
 </template>
 
@@ -56,6 +97,7 @@ function login() {
 
 .title {
     font-size: 24px;
+    font-weight: 300;
 }
 
 .icon {

@@ -13,9 +13,9 @@ function get_token(): IToken | null {
 }
 
 function is_token_needto_refresh(token: IToken) {
-    let refresh_time = new Date(token.active_time * 1000 + 1000 * 60 * 30);
-    let d1 = new Date(Date.now());
-    let date_utc_now = new Date(d1.getUTCFullYear(), d1.getUTCMonth(), d1.getUTCDate(), d1.getUTCHours(), d1.getUTCMinutes(), d1.getUTCSeconds());
+    let refresh_time = new Date(token.active_time * 1000 / 2 + token.expire_time * 1000 / 2);
+    let d = new Date(Date.now());
+    let date_utc_now = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
     return date_utc_now.getTime() >= refresh_time.getTime();
 }
 

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { h, inject, ref, type Ref} from 'vue';
+import { h, ref, type Ref } from 'vue';
 import axios from 'axios';
 import { filesize } from 'filesize'
-import { NButton, type SelectOption} from 'naive-ui'
-import { type IToken } from '../Utils/interfaces'
+import { NButton, type SelectOption } from 'naive-ui'
+import { BASE_URL } from '@/Utils/constant';
+import { UserInfoStore } from '@/Stores/UserInfoStore';
 
 //#region type
 interface DirOption {
@@ -20,9 +21,7 @@ interface File {
 //#endregion
 
 //#region filebrowser_properties
-const BASE_URL = '/api/filebrowser';
-
-let token = inject('token') as Ref<IToken | null>;
+const userInfo = UserInfoStore();
 
 let selectedDir: Ref<string | null> = ref(window.localStorage.getItem('selectedDir'));
 let temp_rpStack = window.localStorage.getItem('relativePathStack');
@@ -31,7 +30,6 @@ let dirAccessOptions: Ref<DirOption[]> = ref([]);
 //#endregion
 
 //#region table_properties
-const file_table = ref(null);
 let tableData_dir: Ref<File[]> = ref([]);
 let tableData_file: Ref<File[]> = ref([]);
 let pagination = ref({
@@ -192,7 +190,7 @@ let tableColumns_file = [
                 style: "margin-left: 10px"
             }, { default: () => '删除' });
             let operation_list = [download_button];
-            if (token.value != null)
+            if (userInfo.token != null)
                 operation_list.push(delete_button);
             let div = h('div', {
                 style: "display: flex;justify-content: flex-end;"
@@ -288,14 +286,13 @@ init_DirAccessList();
 if (selectedDir.value != null) {
     update_FileTable();
 }
-
 </script>
 
 <template>
     <header>
     </header>
     <main>
-        <h2 v-if="token != null">FileBrowser</h2>
+        <h2 v-if="userInfo.token != null">FileBrowser</h2>
         <n-select style="width: 200px;" placeholder="选择文件夹" v-model:value="selectedDir" :options="dirAccessOptions"
             @update:value="select_Dir" />
         <div style="margin-top: 12px;display: flex;justify-content: space-between;">
@@ -305,9 +302,9 @@ if (selectedDir.value != null) {
                 </n-button>
             </div>
             <div>
-                <n-upload v-if="selectedDir != null && token != null" multiple
+                <n-upload v-if="selectedDir != null && userInfo.token != null" multiple
                     :action='`${BASE_URL}/${selectedDir}/upload?relative_path=${encodeURIComponent(relativePathStack.join("/"))}`'
-                    :headers="{'Authorization': `${token?.token_type} ${token?.access_token}`}">
+                    :headers="{ 'Authorization': `${userInfo.token.token_type} ${userInfo.token.access_token}` }">
                     <n-button>
                         上传文件
                     </n-button>
@@ -341,3 +338,4 @@ if (selectedDir.value != null) {
     text-decoration: none;
 }
 </style>
+../Utils/Interfaces/interfaces

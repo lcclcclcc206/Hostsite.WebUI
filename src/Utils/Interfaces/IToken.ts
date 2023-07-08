@@ -6,11 +6,6 @@ interface IToken {
     expire_time: number;
 }
 
-interface IUserInfo {
-    username: string;
-}
-
 export type {
-    IToken,
-    IUserInfo
+    IToken
 }

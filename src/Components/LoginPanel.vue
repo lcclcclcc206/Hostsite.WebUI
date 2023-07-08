@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import axios from 'axios';
 import { NButton, NForm, NFormItem, NInput, useMessage } from 'naive-ui'
-import { inject, ref, type Ref } from 'vue';
-import { type IToken } from '../Utils/interfaces'
+import { ref, type Ref } from 'vue';
+import { type IToken } from '@/Utils/Interfaces/IToken';
+import { UserInfoStore } from '@/Stores/UserInfoStore';
+import { BASE_URL } from '@/Utils/constant';
 
 interface LoginForm {
     username: string;
     password: string;
 }
 
+
+const userInfo = UserInfoStore();
 const emit = defineEmits<{
     (e: 'login_sucess'): void
 }>()
 
-const base_url = '/api/filebrowser';
 const message = useMessage();
-let token = inject('token') as Ref<IToken | null>;
+// let token = inject('token') as Ref<IToken | null>;
 
 let loginForm: Ref<LoginForm> = ref({
     username: '',
@@ -31,7 +34,7 @@ function login() {
 
     axios({
         method: 'post',
-        url: `${base_url}/token`,
+        url: `${BASE_URL}/token`,
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },
@@ -39,9 +42,8 @@ function login() {
         data: loginForm.value
     }).then((res) => {
         // 如果认证成功，存储令牌，显示登录成功，关闭登陆界面，将登录按钮替换为用户
-        let token_value = res.data as IToken;
-        localStorage.setItem("token", JSON.stringify(token_value));
-        token.value = res.data;
+        userInfo.token = res.data as IToken;
+        localStorage.setItem("token", JSON.stringify(userInfo.token))
         message.success("登录成功", { duration: 2000 });
         emit('login_sucess');
 
@@ -50,7 +52,6 @@ function login() {
             message.error("登录失败，用户名或密码错误！", { duration: 2000 });
     })
 }
-
 </script>
 
 <template>
@@ -108,4 +109,4 @@ function login() {
     width: 240px;
     margin-bottom: 12px;
 }
-</style>
+</style>../Utils/Interfaces/interfaces

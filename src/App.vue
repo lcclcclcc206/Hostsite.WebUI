@@ -3,10 +3,11 @@ import type { RouterLink } from 'vue-router';
 import { NButton, NModal, NDropdown } from 'naive-ui'
 import { NConfigProvider, NMessageProvider } from 'naive-ui'
 import { zhCN, dateZhCN } from 'naive-ui'
-import { ref, provide, type Ref } from 'vue';
+import { ref } from 'vue';
 import LoginPanel from './Components/LoginPanel.vue';
-import { type IToken } from './Utils/interfaces'
-import { get_token, update_token, is_token_needto_refresh } from './Utils/authentication'
+import { UserInfoStore } from '@/Stores/UserInfoStore';
+
+const userInfo = UserInfoStore();
 
 const user_options = [
   {
@@ -15,18 +16,15 @@ const user_options = [
   }
 ];
 
-let token: Ref<IToken | null> = ref(get_token());
-if (token.value != null && is_token_needto_refresh(token.value))
-  update_token(token.value, () => {
+if (userInfo.is_token_needto_refresh()) {
+  userInfo.update_token(() => {
     console.log('令牌刷新成功');
   }, () => {
-    token.value = null;
-    console.log('令牌已失效，请重新登录');
-  });
+    userInfo.remove_token();
+  })
+}
 
 let show_loginModal = ref(false);
-
-provide('token', token);
 
 function login_success_operation() {
   show_loginModal.value = false;
@@ -34,8 +32,9 @@ function login_success_operation() {
 
 function handle_user_select_option(key: string) {
   if (key == 'logout') {
-    token.value = null;
-    localStorage.removeItem('token');
+    // token.value = null;
+    // localStorage.removeItem('token');
+    userInfo.remove_token();
   }
 }
 </script>
@@ -53,11 +52,12 @@ function handle_user_select_option(key: string) {
               <span class="navbar-content">
                 <RouterLink to="/home">主页</RouterLink>
                 <RouterLink to="/filebrowser">文件浏览</RouterLink>
+                <RouterLink to="/Test">测试</RouterLink>
               </span>
               <span class="navbar-entry">
-                <NButton v-if="token == null" text @click="show_loginModal = true">登录</NButton>
-                <NDropdown v-if="token != null" :options="user_options" @select="handle_user_select_option">
-                  <NButton text v-html="token.username" />
+                <NButton v-if="userInfo.token == null" text @click="show_loginModal = true">登录</NButton>
+                <NDropdown v-if="userInfo.token != null" :options="user_options" @select="handle_user_select_option">
+                  <NButton text v-html="userInfo.token.username" />
                 </NDropdown>
               </span>
             </nav>
@@ -138,3 +138,4 @@ function handle_user_select_option(key: string) {
   text-decoration: none;
 }
 </style>
+./Utils/Interfaces/interfaces

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { h, ref, type Ref } from 'vue';
 import { filesize } from 'filesize'
-import { NButton, type SelectOption } from 'naive-ui'
+import { NButton, NUpload, type SelectOption, type UploadCustomRequestOptions } from 'naive-ui'
 import { BASE_URL } from '@/Utils/constant';
 import { useUserInfoStore } from '@/Stores/UserInfoStore';
 import { useAxiosStore } from '@/Stores/AxiosStore';
@@ -12,7 +12,7 @@ interface DirOption {
     value: string;
 }
 
-interface File {
+interface FileUnit {
     isfile: boolean;
     name: string;
     size: number;
@@ -31,8 +31,8 @@ let dirAccessOptions: Ref<DirOption[]> = ref([]);
 //#endregion
 
 //#region table_properties
-let tableData_dir: Ref<File[]> = ref([]);
-let tableData_file: Ref<File[]> = ref([]);
+let tableData_dir: Ref<FileUnit[]> = ref([]);
+let tableData_file: Ref<FileUnit[]> = ref([]);
 let pagination = ref({
     page: 1,
     pageSize: 20,
@@ -67,7 +67,7 @@ let tableColumns_dir = [
         key: 'name',
         width: '400px',
         align: 'left',
-        render: (data: File, _: number) => {
+        render: (data: FileUnit, _: number) => {
             let name = data.name;
             return h(
                 'a',
@@ -88,7 +88,7 @@ let tableColumns_dir = [
         key: 'size',
         width: '150px',
         align: 'right',
-        render: (_1: File, _2: number) => {
+        render: (_1: FileUnit, _2: number) => {
             return '';
         }
     },
@@ -97,10 +97,10 @@ let tableColumns_dir = [
         key: 'modified',
         width: '200px',
         align: 'right',
-        render: (data: File, _: number) => {
+        render: (data: FileUnit, _: number) => {
             return data.modified.toLocaleString();
         },
-        sorter: (file1: File, file2: File) => {
+        sorter: (file1: FileUnit, file2: FileUnit) => {
             return file1.modified > file2.modified;
         }
     },
@@ -118,7 +118,7 @@ let tableColumns_file = [
         key: 'name',
         width: '400px',
         align: 'left',
-        render: (data: File, _: number) => {
+        render: (data: FileUnit, _: number) => {
             let name = data.name;
             let query = `?file=${encodeURIComponent(name)}`;
             if (relativePathStack.value.length > 0) {
@@ -140,10 +140,10 @@ let tableColumns_file = [
         key: 'size',
         width: '150px',
         align: 'right',
-        render: (data: File, _: number) => {
+        render: (data: FileUnit, _: number) => {
             return filesize(data.size) as string;
         },
-        sorter: (file1: File, file2: File) => {
+        sorter: (file1: FileUnit, file2: FileUnit) => {
             return file1.size > file2.size;
         }
     },
@@ -152,10 +152,10 @@ let tableColumns_file = [
         key: 'modified',
         width: '200px',
         align: 'right',
-        render: (data: File, _: number) => {
+        render: (data: FileUnit, _: number) => {
             return data.modified.toLocaleString();
         },
-        sorter: (file1: File, file2: File) => {
+        sorter: (file1: FileUnit, file2: FileUnit) => {
             return file1.modified > file2.modified;
         }
     },
@@ -164,7 +164,7 @@ let tableColumns_file = [
         key: 'operation',
         width: '150px',
         align: 'right',
-        render: (data: File, _: number) => {
+        render: (data: FileUnit, _: number) => {
             let download_button = h(NButton, {
                 type: 'info',
                 onClick: () => {
@@ -231,6 +231,21 @@ function return_superior(index?: number) {
     }
     window.localStorage.setItem('relativePathStack', relativePathStack.value.join('/'));
     update_FileTable();
+}
+
+function uploadfile_customRequest(options: UploadCustomRequestOptions) {
+    const formData = new FormData();
+    formData.append('file', options.file.file as File);
+    axios.useToken.post(options.action as string, formData, {
+        headers: options.headers as Record<string, string>,
+        onUploadProgress: (event) => {
+            options.onProgress({ percent: Math.ceil(event.loaded * 100 / event.total!) });
+        }
+    }).then((res) => {
+        options.onFinish();
+    }).catch((error) => {
+        options.onError();
+    });
 }
 //#endregion
 
@@ -305,7 +320,8 @@ if (selectedDir.value != null) {
             <div>
                 <n-upload v-if="selectedDir != null && userInfo.token != null" multiple
                     :action='`${BASE_URL}/${selectedDir}/upload?relative_path=${encodeURIComponent(relativePathStack.join("/"))}`'
-                    :headers="{ 'Authorization': `${userInfo.token.token_type} ${userInfo.token.access_token}` }">
+                    :headers="{ 'Authorization': `${userInfo.token.token_type} ${userInfo.token.access_token}` }"
+                    :custom-request="uploadfile_customRequest">
                     <n-button>
                         上传文件
                     </n-button>

@@ -8,7 +8,9 @@ interface State {
     useToken: AxiosInstance
 }
 
-let axios_useToken = axios.create();
+let axios_useToken = axios.create({
+    withCredentials: true
+});
 axios_useToken.interceptors.request.use(function (config) {
     const userInfo = useUserInfoStore();
     if (userInfo.token != null) {

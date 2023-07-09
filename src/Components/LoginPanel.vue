@@ -36,8 +36,7 @@ function login() {
     axios.default.post(`${BASE_URL}/token`, loginForm.value, {
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
-        },
-        withCredentials: true,
+        }
     }).then((res) => {
         // 如果认证成功，存储令牌，显示登录成功，关闭登陆界面，将登录按钮替换为用户
         userInfo.token = res.data as IToken;

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { h, ref, type Ref } from 'vue';
-import axios from 'axios';
 import { filesize } from 'filesize'
 import { NButton, type SelectOption } from 'naive-ui'
 import { BASE_URL } from '@/Utils/constant';
-import { UserInfoStore } from '@/Stores/UserInfoStore';
+import { useUserInfoStore } from '@/Stores/UserInfoStore';
+import { useAxiosStore } from '@/Stores/AxiosStore';
 
 //#region type
 interface DirOption {
@@ -21,7 +21,8 @@ interface File {
 //#endregion
 
 //#region filebrowser_properties
-const userInfo = UserInfoStore();
+const userInfo = useUserInfoStore();
+const axios = useAxiosStore();
 
 let selectedDir: Ref<string | null> = ref(window.localStorage.getItem('selectedDir'));
 let temp_rpStack = window.localStorage.getItem('relativePathStack');
@@ -182,7 +183,7 @@ let tableColumns_file = [
                     let filename = data.name;
                     let relativepath = relativePathStack.value.join('/');
 
-                    axios.post(`${BASE_URL}/${dirname}/delete?file=${encodeURIComponent(filename)}&relative_path=${encodeURIComponent(relativepath)}`)
+                    axios.useToken.post(`${BASE_URL}/${dirname}/delete?file=${encodeURIComponent(filename)}&relative_path=${encodeURIComponent(relativepath)}`)
                         .then(_ => {
                             update_FileTable();
                         });
@@ -203,7 +204,7 @@ let tableColumns_file = [
 
 //#region filebrowser_function
 function init_DirAccessList() {
-    return axios.get(BASE_URL).then(
+    return axios.default.get(BASE_URL).then(
         function (response) {
             let data = response.data;
             let list: string[] = data;
@@ -241,7 +242,7 @@ function update_FileTable() {
     if (relativePathStack.value.length > 0) {
         query = `?relative_path=${encodeURIComponent(relativePathStack.value.join('/'))}`;
     }
-    return axios.get(`${BASE_URL}/${selectedDir.value as string}/info${query}`).then(
+    return axios.default.get(`${BASE_URL}/${selectedDir.value as string}/info${query}`).then(
         function (response) {
             let dirList = response.data['dirlist'];
             let fileList = response.data['filelist'];

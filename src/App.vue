@@ -5,9 +5,9 @@ import { NConfigProvider, NMessageProvider } from 'naive-ui'
 import { zhCN, dateZhCN } from 'naive-ui'
 import { ref } from 'vue';
 import LoginPanel from './Components/LoginPanel.vue';
-import { UserInfoStore } from '@/Stores/UserInfoStore';
+import { useUserInfoStore } from '@/Stores/UserInfoStore';
 
-const userInfo = UserInfoStore();
+const userInfo = useUserInfoStore();
 
 const user_options = [
   {

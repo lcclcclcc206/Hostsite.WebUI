@@ -1,7 +1,16 @@
 <script setup lang="ts">
-import { UserInfoStore } from '@/Stores/UserInfoStore'
+import { useUserInfoStore } from '@/Stores/UserInfoStore'
+import { useAxiosStore } from '@/Stores/AxiosStore';
+import { BASE_URL } from '@/Utils/constant';
 
-const userInfo = UserInfoStore();
+const userInfo = useUserInfoStore();
+const axios = useAxiosStore();
+
+
+axios.useToken.post(`${BASE_URL}/test`)
+    .then((res) => {
+        console.log('success');
+    });
 </script>
 
 <template>

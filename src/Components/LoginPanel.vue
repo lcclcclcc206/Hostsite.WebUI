@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import axios from 'axios';
 import { NButton, NForm, NFormItem, NInput, useMessage } from 'naive-ui'
 import { ref, type Ref } from 'vue';
 import { type IToken } from '@/Utils/Interfaces/IToken';
-import { UserInfoStore } from '@/Stores/UserInfoStore';
+import { useUserInfoStore } from '@/Stores/UserInfoStore';
+import { useAxiosStore } from '@/Stores/AxiosStore';
 import { BASE_URL } from '@/Utils/constant';
 
 interface LoginForm {
@@ -12,7 +12,8 @@ interface LoginForm {
 }
 
 
-const userInfo = UserInfoStore();
+const userInfo = useUserInfoStore();
+const axios = useAxiosStore();
 const emit = defineEmits<{
     (e: 'login_sucess'): void
 }>()
@@ -32,14 +33,11 @@ function login() {
     form_data.append('username', data.username);
     form_data.append('password', data.password);
 
-    axios({
-        method: 'post',
-        url: `${BASE_URL}/token`,
+    axios.default.post(`${BASE_URL}/token`, loginForm.value, {
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },
         withCredentials: true,
-        data: loginForm.value
     }).then((res) => {
         // 如果认证成功，存储令牌，显示登录成功，关闭登陆界面，将登录按钮替换为用户
         userInfo.token = res.data as IToken;
@@ -50,7 +48,7 @@ function login() {
     }).catch(function (error) {
         if (error.response.status == 401)
             message.error("登录失败，用户名或密码错误！", { duration: 2000 });
-    })
+    });
 }
 </script>
 

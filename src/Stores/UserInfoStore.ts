@@ -17,7 +17,7 @@ function init_token(): IToken | null {
     }
 }
 
-export const UserInfoStore = defineStore('userInfo', {
+export const useUserInfoStore = defineStore('userInfo', {
     state: (): State => {
         return {
             token: init_token()
@@ -45,7 +45,6 @@ export const UserInfoStore = defineStore('userInfo', {
                 method: 'post',
                 url: `${BASE_URL}/token/refresh`,
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
                     'Authorization': `${this.token.token_type} ${this.token.access_token}`
                 },
                 withCredentials: true,

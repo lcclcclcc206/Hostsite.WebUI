@@ -48,6 +48,12 @@ function login() {
             message.error("登录失败，用户名或密码错误！", { duration: 2000 });
     });
 }
+
+document.addEventListener('keydown', function (e) {
+    if (e.code == 'Enter') {
+        login();
+    }
+});
 </script>
 
 <template>

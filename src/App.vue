@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import type { RouterLink } from 'vue-router';
-import { NButton, NModal, NDropdown } from 'naive-ui'
-import { NConfigProvider, NMessageProvider } from 'naive-ui'
+import { useRouter, type RouterLink } from 'vue-router';
+import { NButton, NDropdown } from 'naive-ui'
+import { NConfigProvider } from 'naive-ui'
 import { zhCN, dateZhCN } from 'naive-ui'
-import { ref } from 'vue';
-import LoginPanel from './Components/LoginPanel.vue';
 import { useUserInfoStore } from '@/Stores/UserInfoStore';
 
 const userInfo = useUserInfoStore();
+const router = useRouter();
 
 const user_options = [
   {
@@ -24,18 +23,15 @@ if (userInfo.is_token_needto_refresh()) {
   })
 }
 
-let show_loginModal = ref(false);
-
-function login_success_operation() {
-  show_loginModal.value = false;
-}
-
 function handle_user_select_option(key: string) {
   if (key == 'logout') {
-    // token.value = null;
-    // localStorage.removeItem('token');
     userInfo.remove_token();
+    router.push({ 'name': 'login' });
   }
+}
+
+function redirect_to_login() {
+  router.push({ name: 'login' });
 }
 </script>
 
@@ -50,24 +46,21 @@ function handle_user_select_option(key: string) {
                 <RouterLink to="/home" class="logo">Hostsite</RouterLink>
               </span>
               <span class="navbar-content">
-                <RouterLink to="/home">主页</RouterLink>
-                <RouterLink to="/filebrowser">文件浏览</RouterLink>
-                <RouterLink to="/Test">测试</RouterLink>
+                <span class="navbar-content-list" v-if="userInfo.token != null">
+                  <RouterLink to="/home">主页</RouterLink>
+                  <RouterLink to="/filebrowser">文件浏览</RouterLink>
+                  <RouterLink to="/Test">测试</RouterLink>
+                </span>
               </span>
               <span class="navbar-entry">
-                <NButton v-if="userInfo.token == null" text @click="show_loginModal = true">登录</NButton>
+                <NButton v-if="userInfo.token == null" text @click="redirect_to_login">登录</NButton>
                 <NDropdown v-if="userInfo.token != null" :options="user_options" @select="handle_user_select_option">
-                  <NButton text v-html="userInfo.token.username" />
+                  <NButton text>{{ userInfo.token.username }}</NButton>
                 </NDropdown>
               </span>
             </nav>
           </n-layout-header>
           <n-layout-content bordered content-style="padding: 24px;">
-            <NMessageProvider>
-              <n-modal v-model:show="show_loginModal">
-                <LoginPanel @login_sucess="login_success_operation" />
-              </n-modal>
-            </NMessageProvider>
             <RouterView />
           </n-layout-content>
           <n-layout-footer bordered>
@@ -111,7 +104,7 @@ function handle_user_select_option(key: string) {
   flex-grow: 1;
 }
 
-.navbar-content>* {
+.navbar-content-list>* {
   text-decoration: none;
   margin-right: 18px;
   font-size: 1.2em;

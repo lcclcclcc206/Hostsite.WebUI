@@ -11,7 +11,6 @@ interface LoginForm {
     password: string;
 }
 
-
 const userInfo = useUserInfoStore();
 const axios = useAxiosStore();
 const emit = defineEmits<{
@@ -55,7 +54,7 @@ function login() {
     <div class="container">
         <div class="title">登录</div>
         <div>
-            <img class="icon" alt="icon" src="../Assets/Images/icon.svg" />
+            <img class="icon" alt="icon" src='/src/Assets/Images/icon.svg' />
         </div>
         <n-form class="login-form" size="large" :model="loginForm">
             <n-form-item label="用户名" path="username">
@@ -85,7 +84,7 @@ function login() {
     align-items: center;
     width: 400px;
     height: 480px;
-    background-color: rgb(255, 255, 255);
+    background-color: rgb(251, 251, 251);
     border-radius: 1em;
 }
 

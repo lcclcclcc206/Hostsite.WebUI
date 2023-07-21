@@ -1,23 +1,24 @@
-import { createRouter, createWebHashHistory, type RouterOptions } from 'vue-router'
+import { createRouter, createWebHistory, type RouterOptions } from 'vue-router'
 import FileBrowser from '@/Components/FileBrowser.vue'
 import Home from '@/Components/Home.vue'
-import LoginPanel from '@/Components/LoginPanel.vue'
+import Login from '@/Components/Login.vue'
 import Test from '@/Components/Test.vue'
+import { useUserInfoStore } from '@/Stores/UserInfoStore'
 
 let router_option: RouterOptions = {
-    history: createWebHashHistory(),
+    history: createWebHistory(),
     routes: [
         {
             path: '/', redirect: 'filebrowser'
         },
         {
-            path: '/home', component: Home
+            name: 'home', path: '/home', component: Home
         },
         {
-            path: '/filebrowser', component: FileBrowser
+            name: 'filebrowser', path: '/filebrowser', component: FileBrowser
         },
         {
-            path: '/login', component: LoginPanel
+            name: 'login', path: '/login', component: Login
         },
         {
             path: '/test', component: Test
@@ -26,3 +27,16 @@ let router_option: RouterOptions = {
 };
 
 export const router = createRouter(router_option);
+
+router.beforeEach((to, from) => {
+    const userInfo = useUserInfoStore();
+    if (to.name != 'login') {
+        if (userInfo.token == null) {
+            return { name: 'login' };
+        }
+        else {
+            userInfo.verify_token();
+        }
+    }
+    return true;
+});

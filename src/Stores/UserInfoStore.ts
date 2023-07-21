@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { type IToken } from '@/Utils/Interfaces/IToken'
 import { BASE_URL } from '@/Utils/constant';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 interface State {
     token: IToken | null
@@ -62,6 +63,30 @@ export const useUserInfoStore = defineStore('userInfo', {
         remove_token() {
             this.token = null;
             localStorage.removeItem('token');
+        },
+        async verify_token() {
+            const router = useRouter();
+            if (this.token == null) {
+                router.push({ 'name': 'login' });
+                return;
+            }
+
+            await axios({
+                method: 'post',
+                url: `${BASE_URL}/token/verify`,
+                headers: {
+                    'Authorization': `${this.token.token_type} ${this.token.access_token}`
+                },
+                withCredentials: true,
+            }).then((_) => {
+                return;
+            }).catch(function (error) {
+                if (error.response.status == 401) {
+                    localStorage.removeItem('token');
+                    router.push({ 'name': 'login' });
+                    return;
+                }
+            });
         }
     }
 })

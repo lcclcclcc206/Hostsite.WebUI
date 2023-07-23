@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter, type RouterLink } from 'vue-router';
-import { NButton, NDropdown } from 'naive-ui'
+import { NButton, NDropdown, NLayout } from 'naive-ui'
 import { NConfigProvider } from 'naive-ui'
 import { zhCN, dateZhCN } from 'naive-ui'
 import { useUserInfoStore } from '@/Stores/UserInfoStore';
@@ -38,42 +38,62 @@ function redirect_to_login() {
 <template>
   <main>
     <n-config-provider :locale="zhCN" :date-locale="dateZhCN">
-      <n-space vertical size="large">
-        <n-layout>
-          <n-layout-header bordered>
-            <nav class="navbar">
-              <span>
-                <RouterLink to="/home" class="logo">Hostsite</RouterLink>
+      <div class="app-container">
+        <div class="app-header">
+          <nav class="navbar">
+            <span>
+              <RouterLink to="/home" class="logo">Hostsite</RouterLink>
+            </span>
+            <span class="navbar-content">
+              <span class="navbar-content-list" v-if="userInfo.token != null">
+                <RouterLink to="/home">主页</RouterLink>
+                <RouterLink to="/filebrowser">文件浏览</RouterLink>
+                <RouterLink to="/Test">测试</RouterLink>
               </span>
-              <span class="navbar-content">
-                <span class="navbar-content-list" v-if="userInfo.token != null">
-                  <RouterLink to="/home">主页</RouterLink>
-                  <RouterLink to="/filebrowser">文件浏览</RouterLink>
-                  <RouterLink to="/Test">测试</RouterLink>
-                </span>
-              </span>
-              <span class="navbar-entry">
-                <NButton v-if="userInfo.token == null" text @click="redirect_to_login">登录</NButton>
-                <NDropdown v-if="userInfo.token != null" :options="user_options" @select="handle_user_select_option">
-                  <NButton text>{{ userInfo.token.username }}</NButton>
-                </NDropdown>
-              </span>
-            </nav>
-          </n-layout-header>
-          <n-layout-content bordered content-style="padding: 24px;">
-            <RouterView />
-          </n-layout-content>
-          <n-layout-footer bordered>
-            Servered by lcc206
-          </n-layout-footer>
-        </n-layout>
-      </n-space>
+            </span>
+            <span class="navbar-entry">
+              <NButton v-if="userInfo.token == null" text @click="redirect_to_login">登录</NButton>
+              <NDropdown v-if="userInfo.token != null" :options="user_options" @select="handle_user_select_option">
+                <NButton text>{{ userInfo.token.username }}</NButton>
+              </NDropdown>
+            </span>
+          </nav>
+        </div>
+        <div class="app-content">
+          <RouterView />
+        </div>
+        <div class="app-footer">
+          Servered by lcc206
+        </div>
+      </div>
     </n-config-provider>
 
   </main>
 </template>
 
 <style scoped>
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 12px;
+}
+
+.app-content {
+  background: rgba(255, 255, 255, 0.4);
+  padding: 24px;
+  flex-grow: 1;
+}
+
+.app-footer {
+  background: rgba(128, 128, 128, 0.2);
+  padding: 24px;
+}
+
 .n-layout-header {
   background: rgba(255, 255, 255, 0.2);
   padding: 12px;

@@ -55,7 +55,8 @@ export const useUserInfoStore = defineStore('userInfo', {
                 success_callback();
             }).catch(function (error) {
                 if (error.response.status == 401) {
-                    localStorage.removeItem('token');
+                    const userInfo = useUserInfoStore();
+                    userInfo.remove_token();
                 }
                 fail_callback();
             });
@@ -70,7 +71,6 @@ export const useUserInfoStore = defineStore('userInfo', {
                 router.push({ 'name': 'login' });
                 return;
             }
-
             await axios({
                 method: 'post',
                 url: `${BASE_URL}/token/verify`,
@@ -82,7 +82,8 @@ export const useUserInfoStore = defineStore('userInfo', {
                 return;
             }).catch(function (error) {
                 if (error.response.status == 401) {
-                    localStorage.removeItem('token');
+                    const userInfo = useUserInfoStore();
+                    userInfo.remove_token();
                     router.push({ 'name': 'login' });
                     return;
                 }

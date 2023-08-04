@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { type IToken } from '@/Utils/Interfaces/IToken'
+import { type IToken } from '@/Utils/Interfaces/Token'
 import { BASE_URL } from '@/Utils/constant';
 import axios from 'axios';
 import { useRouter } from 'vue-router';

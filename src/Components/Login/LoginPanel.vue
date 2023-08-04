@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { NButton, NForm, NFormItem, NInput, useMessage } from 'naive-ui'
 import { ref, type Ref } from 'vue';
-import { type IToken } from '@/Utils/Interfaces/IToken';
+import { type IToken } from '@/Utils/Interfaces/Token';
 import { useUserInfoStore } from '@/Stores/UserInfoStore';
 import { useAxiosStore } from '@/Stores/AxiosStore';
 import { BASE_URL } from '@/Utils/constant';

@@ -1,30 +1,24 @@
 <script setup lang="ts">
-import { ref, type Ref } from 'vue';
+import { inject, ref, type Ref } from 'vue';
 import { type SelectOption, type UploadCustomRequestOptions } from 'naive-ui'
 import { type DirOption } from '@/Utils/Interfaces/FileBrowser';
 import { BASE_URL } from '@/Utils/constant';
 import { useUserInfoStore } from '@/Stores/UserInfoStore';
 import { useAxiosStore } from '@/Stores/AxiosStore';
+import NewFolderPanel from '@/Components/FileBrowser/NewFolderPanel.vue';
 
 const userInfo = useUserInfoStore();
 const axios = useAxiosStore();
 
-const props = defineProps<{
-    selectedDir: string | null,
-    relativePathStack: string[]
-}>();
+const selectedDir = inject('selectedDir') as Ref<string | null>;
+const relativePathStack = inject('relativePathStack') as Ref<string[]>;
 
-const emit = defineEmits<{
-    selectDir: [value: string, option: SelectOption],
-    returnSuperior: [index?: number],
-    updateFileTable: [],
-}>();
+const selectDir = inject('selectDir') as (value: string, _: SelectOption) => void;
+const return_superior = inject('returnSuperior') as (index?: number) => void;
+const update_FileTable = inject('updateFileTable') as () => void;
 
 const dirAccessOptions: Ref<DirOption[]> = ref([]);
-
-function selectDir(value: string, option: SelectOption) {
-    emit('selectDir', value, option);
-}
+const showNewFolderPanel = ref(false);
 
 function uploadfile_customRequest(options: UploadCustomRequestOptions) {
     const formData = new FormData();
@@ -61,22 +55,23 @@ function init_DirAccessList() {
 }
 
 init_DirAccessList();
-if (props.selectedDir != null) {
-    emit('updateFileTable');
+if (selectedDir.value != null) {
+    update_FileTable();
 }
 </script>
 
 <template>
     <main>
-        <n-select style="width: 200px;" placeholder="选择文件夹" v-bind:value="props.selectedDir" :options="dirAccessOptions"
+        <n-select style="width: 200px;" placeholder="选择文件夹" v-bind:value="selectedDir" :options="dirAccessOptions"
             @update:value="selectDir" />
         <div style="margin-top: 12px;display: flex;justify-content: space-between;">
             <div>
-                <n-button v-if="relativePathStack.length != 0" @click="emit('returnSuperior')">
+                <n-button v-if="relativePathStack.length != 0" @click="return_superior">
                     返回上级
                 </n-button>
             </div>
-            <div>
+            <div class="file-operation-list">
+                <n-button @click="showNewFolderPanel = true">新建文件夹</n-button>
                 <n-upload v-if="selectedDir != null && userInfo.token != null" multiple
                     :action='`${BASE_URL}/${selectedDir}/upload?relative_path=${encodeURIComponent(relativePathStack.join("/"))}`'
                     :headers="{ 'Authorization': `${userInfo.token.token_type} ${userInfo.token.access_token}` }"
@@ -89,11 +84,27 @@ if (props.selectedDir != null) {
         </div>
         <n-divider />
         <n-breadcrumb style="margin-bottom: 12px;">
-            <n-breadcrumb-item v-for="(item, index) in relativePathStack" @click="emit('returnSuperior', index)">
+            <n-breadcrumb-item v-for="(item, index) in relativePathStack" @click="return_superior(index)">
                 {{ item }}
             </n-breadcrumb-item>
         </n-breadcrumb>
+        <n-modal v-model:show="showNewFolderPanel">
+            <NewFolderPanel class="new-folder-panel" @close="showNewFolderPanel = false" />
+        </n-modal>
     </main>
 </template>
 
-<style scoped></style>
+<style scoped>
+.file-operation-list {
+    display: flex;
+}
+
+.file-operation-list>* {
+    margin-left: 12px;
+}
+
+.new-folder-panel {
+    float: left;
+    margin: auto;
+}
+</style>

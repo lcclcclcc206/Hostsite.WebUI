@@ -27,11 +27,6 @@ let loginForm: Ref<LoginForm> = ref({
 let login_button_disabled = ref(false);
 
 function login() {
-    let form_data = new FormData();
-    let data = loginForm.value;
-    form_data.append('username', data.username);
-    form_data.append('password', data.password);
-
     axios.default.post(`${BASE_URL}/token`, loginForm.value, {
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"

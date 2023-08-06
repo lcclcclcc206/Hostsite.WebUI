@@ -1,27 +1,24 @@
 <script setup lang="ts">
-import { h, ref } from 'vue';
+import { h, inject, ref, type Ref } from 'vue';
 import { type FileUnit } from '@/Utils/Interfaces/FileBrowser';
 import { useUserInfoStore } from '@/Stores/UserInfoStore';
 import { useAxiosStore } from '@/Stores/AxiosStore';
 import { filesize } from 'filesize'
-import { NButton } from 'naive-ui'
+import { NButton, useMessage } from 'naive-ui'
 import { BASE_URL } from '@/Utils/constant';
 
 
 const userInfo = useUserInfoStore();
 const axios = useAxiosStore();
+const message = useMessage();
 
-const props = defineProps<{
-    selectedDir: string | null,
-    relativePathStack: string[],
-    tableDataDir: FileUnit[],
-    tableDataFile: FileUnit[]
-}>();
+const selectedDir = inject('selectedDir') as Ref<string | null>;
+const relativePathStack = inject('relativePathStack') as Ref<string[]>;
+const tableDataDir = inject('tableDataDir') as Ref<FileUnit[]>;
+const tableDataFile = inject('tableDataFile') as Ref<FileUnit[]>;
 
-const emit = defineEmits<{
-    enterDir: [dirname: string],
-    updateFileTable: [],
-}>();
+const enter_dir = inject('enterDir') as (dirname: string) => void;
+const update_FileTable = inject('updateFileTable') as () => void;
 
 let pagination = ref({
     page: 1,
@@ -64,7 +61,7 @@ let tableColumns_dir = [
                 {
                     href: "javascript:void(0);",
                     onClick(event: Event) {
-                        emit('enterDir', name);
+                        enter_dir(name);
                     },
                     class: 'dirlink'
                 },
@@ -98,7 +95,32 @@ let tableColumns_dir = [
         title: '操作',
         key: 'operation',
         width: '150px',
-        align: 'right'
+        align: 'right',
+        render: (data: FileUnit, _: number) => {
+            let delete_button = h(NButton, {
+                type: 'error',
+                onClick: () => {
+                    let dirname = selectedDir.value;
+                    let folder_name = data.name;
+                    let relativepath = relativePathStack.value.join('/');
+
+                    axios.useToken.post(`${BASE_URL}/${dirname}/delete-folder?folder_name=${encodeURIComponent(folder_name)}&relative_path=${encodeURIComponent(relativepath)}`)
+                        .then(_ => {
+                            update_FileTable();
+                        }).catch(function (error) {
+                            message.error("文件夹删除失败，请确保文件夹为空！", { duration: 2000 });
+                        });
+                },
+                style: "margin-left: 10px"
+            }, { default: () => '删除' });
+            let operation_list = [];
+            if (userInfo.token != null)
+                operation_list.push(delete_button);
+            let div = h('div', {
+                style: "display: flex;justify-content: flex-end;"
+            }, operation_list);
+            return div;
+        }
     }
 ]
 
@@ -111,13 +133,13 @@ let tableColumns_file = [
         render: (data: FileUnit, _: number) => {
             let name = data.name;
             let query = `?file=${encodeURIComponent(name)}`;
-            if (props.relativePathStack.length > 0) {
-                query = `?file=${encodeURIComponent(name)}&relative_path=${encodeURIComponent(props.relativePathStack.join('/'))}`;
+            if (relativePathStack.value.length > 0) {
+                query = `?file=${encodeURIComponent(name)}&relative_path=${encodeURIComponent(relativePathStack.value.join('/'))}`;
             }
             return h(
                 'a',
                 {
-                    href: `${BASE_URL}/${props.selectedDir as string}/download${query}`,
+                    href: `${BASE_URL}/${selectedDir.value as string}/download${query}`,
                     class: 'dowloadlink'
                 },
                 name
@@ -160,22 +182,22 @@ let tableColumns_file = [
                 onClick: () => {
                     let name = data.name;
                     let path = `file=${encodeURIComponent(name)}`;
-                    if (props.relativePathStack.length > 0) {
-                        path = `file=${encodeURIComponent(name)}&relative_path=${encodeURIComponent(props.relativePathStack.join('/'))}`;
+                    if (relativePathStack.value.length > 0) {
+                        path = `file=${encodeURIComponent(name)}&relative_path=${encodeURIComponent(relativePathStack.value.join('/'))}`;
                     }
-                    window.location.href = `${BASE_URL}/${props.selectedDir as string}/download?inline=false&${path}`;
+                    window.location.href = `${BASE_URL}/${selectedDir.value as string}/download?inline=false&${path}`;
                 }
             }, { default: () => '下载' });
             let delete_button = h(NButton, {
                 type: 'error',
                 onClick: () => {
-                    let dirname = props.selectedDir;
+                    let dirname = selectedDir.value;
                     let filename = data.name;
-                    let relativepath = props.relativePathStack.join('/');
+                    let relativepath = relativePathStack.value.join('/');
 
                     axios.useToken.post(`${BASE_URL}/${dirname}/delete?file=${encodeURIComponent(filename)}&relative_path=${encodeURIComponent(relativepath)}`)
                         .then(_ => {
-                            emit('updateFileTable');
+                            update_FileTable();
                         });
                 },
                 style: "margin-left: 10px"

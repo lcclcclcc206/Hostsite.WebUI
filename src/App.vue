@@ -48,7 +48,7 @@ function redirect_to_login() {
               <span class="navbar-content-list" v-if="userInfo.token != null">
                 <RouterLink to="/home">主页</RouterLink>
                 <RouterLink to="/filebrowser">文件浏览</RouterLink>
-                <RouterLink to="/Test">测试</RouterLink>
+                <!-- <RouterLink to="/Test">测试</RouterLink> -->
               </span>
             </span>
             <span class="navbar-entry">
@@ -151,4 +151,3 @@ function redirect_to_login() {
   text-decoration: none;
 }
 </style>
-./Utils/Interfaces/interfaces

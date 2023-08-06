@@ -11,17 +11,23 @@ import FileBrowserBody from '@/Components/FileBrowser/FileBrowserBody.vue';
 const userInfo = useUserInfoStore();
 const axios = useAxiosStore();
 
-let selectedDir: Ref<string | null> = ref(window.localStorage.getItem('selectedDir'));
-let temp_rpStack = window.localStorage.getItem('relativePathStack');
-let relativePathStack: Ref<string[]> = ref(temp_rpStack == null || temp_rpStack.length == 0 ? [] : temp_rpStack!.split('/'));
+const selectedDir: Ref<string | null> = ref(window.localStorage.getItem('selectedDir'));
+const temp_rpStack = window.localStorage.getItem('relativePathStack');
+const relativePathStack: Ref<string[]> = ref(temp_rpStack == null || temp_rpStack.length == 0 ? [] : temp_rpStack!.split('/'));
 
-let tableDataDir: Ref<FileUnit[]> = ref([]);
-let tableDataFile: Ref<FileUnit[]> = ref([]);
+const tableDataDir: Ref<FileUnit[]> = ref([]);
+const tableDataFile: Ref<FileUnit[]> = ref([]);
 
 provide('selectedDir', selectedDir);
 provide('relativePathStack', relativePathStack);
 provide('tableDataDir', tableDataDir);
 provide('tableDataFile', tableDataFile);
+
+provide('selectDir', select_dir);
+provide('enterDir', enter_dir);
+provide('returnSuperior', return_superior);
+provide('updateFileTable', update_FileTable);
+
 
 function return_superior(index?: number) {
     if (typeof (index) === 'number') {
@@ -80,15 +86,19 @@ function enter_dir(dirname: string) {
     window.localStorage.setItem('relativePathStack', relativePathStack.value.join('/'));
     update_FileTable();
 }
+
 </script>
 
 <template>
     <main>
-        <h2 class="filebrowser-title" v-if="userInfo.token != null">FileBrowser</h2>
-        <FileBrowserOption :selected-dir="selectedDir" :relative-path-stack="relativePathStack" @select-dir="select_dir"
-            @return-superior="return_superior" @update-file-table="update_FileTable" />
-        <FileBrowserBody :selected-dir="selectedDir" :relative-path-stack="relativePathStack" :table-data-dir="tableDataDir"
-            :table-data-file="tableDataFile" @enter-dir="enter_dir" @update-file-table="update_FileTable" />
+        <NMessageProvider>
+            <h2 class="filebrowser-title" v-if="userInfo.token != null">FileBrowser</h2>
+            <FileBrowserOption :selected-dir="selectedDir" :relative-path-stack="relativePathStack" @select-dir="select_dir"
+                @return-superior="return_superior" @update-file-table="update_FileTable" />
+            <FileBrowserBody :selected-dir="selectedDir" :relative-path-stack="relativePathStack"
+                :table-data-dir="tableDataDir" :table-data-file="tableDataFile" @enter-dir="enter_dir"
+                @update-file-table="update_FileTable" />
+        </NMessageProvider>
     </main>
 </template>
 

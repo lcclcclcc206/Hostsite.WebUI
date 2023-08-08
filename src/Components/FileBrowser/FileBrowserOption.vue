@@ -71,7 +71,7 @@ if (selectedDir.value != null) {
                 </n-button>
             </div>
             <div class="file-operation-list">
-                <n-button @click="showNewFolderPanel = true">新建文件夹</n-button>
+                <n-button v-if="selectedDir != null && userInfo.token != null" @click="showNewFolderPanel = true">新建文件夹</n-button>
                 <n-upload v-if="selectedDir != null && userInfo.token != null" multiple
                     :action='`${BASE_URL}/${selectedDir}/upload?relative_path=${encodeURIComponent(relativePathStack.join("/"))}`'
                     :headers="{ 'Authorization': `${userInfo.token.token_type} ${userInfo.token.access_token}` }"

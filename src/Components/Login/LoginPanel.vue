@@ -18,7 +18,6 @@ const emit = defineEmits<{
 }>()
 
 const message = useMessage();
-// let token = inject('token') as Ref<IToken | null>;
 
 let loginForm: Ref<LoginForm> = ref({
     username: '',
@@ -49,6 +48,7 @@ document.addEventListener('keydown', function (e) {
         login();
     }
 });
+
 </script>
 
 <template>

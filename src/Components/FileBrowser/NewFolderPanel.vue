@@ -2,13 +2,16 @@
 import { NButton, NForm, NFormItem, NInput, useMessage } from 'naive-ui'
 import { inject, ref, type Ref } from 'vue';
 import { useAxiosStore } from '@/Stores/AxiosStore';
+import { useFileBrowserStore } from '@/Stores/FileBrowserStore';
 import { BASE_URL } from '@/Utils/constant';
+import { storeToRefs } from 'pinia';
 
 const axios = useAxiosStore();
 const message = useMessage();
+const filebrowserInfo = useFileBrowserStore();
 
-const selectedDir = inject('selectedDir') as Ref<string | null>;
-const relativePathStack = inject('relativePathStack') as Ref<string[]>;
+const selectedDir: Ref<string | null> = storeToRefs(filebrowserInfo).selectedDir;
+const relativePathStack: Ref<string[]> = storeToRefs(filebrowserInfo).relativePathStack;
 
 const update_FileTable = inject('updateFileTable') as () => void;
 

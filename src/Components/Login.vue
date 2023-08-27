@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 function login_sucess() {
-    router.replace({ name: 'filebrowser' });
+    router.replace({name: 'home'});
 }
 </script>
 

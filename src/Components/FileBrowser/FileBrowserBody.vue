@@ -3,17 +3,21 @@ import { h, inject, ref, type Ref } from 'vue';
 import { type FileUnit } from '@/Utils/Interfaces/FileBrowser';
 import { useUserInfoStore } from '@/Stores/UserInfoStore';
 import { useAxiosStore } from '@/Stores/AxiosStore';
+import { useFileBrowserStore } from '@/Stores/FileBrowserStore';
 import { filesize } from 'filesize'
 import { NButton, useMessage } from 'naive-ui'
 import { BASE_URL } from '@/Utils/constant';
+import { storeToRefs } from 'pinia';
 
 
 const userInfo = useUserInfoStore();
 const axios = useAxiosStore();
+const filebrowserInfo = useFileBrowserStore();
 const message = useMessage();
 
-const selectedDir = inject('selectedDir') as Ref<string | null>;
-const relativePathStack = inject('relativePathStack') as Ref<string[]>;
+const selectedDir: Ref<string | null> = storeToRefs(filebrowserInfo).selectedDir;
+const relativePathStack: Ref<string[]> = storeToRefs(filebrowserInfo).relativePathStack;
+
 const tableDataDir = inject('tableDataDir') as Ref<FileUnit[]>;
 const tableDataFile = inject('tableDataFile') as Ref<FileUnit[]>;
 

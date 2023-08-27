@@ -15,13 +15,13 @@ let router_option: RouterOptions = {
             name: 'home', path: '/home', component: Home
         },
         {
-            name: 'filebrowser', path: '/filebrowser', component: FileBrowser
+            name: 'filebrowser', path: '/filebrowser/:dir?', component: FileBrowser
         },
         {
             name: 'login', path: '/login', component: Login
         },
         {
-            path: '/test', component: Test
+            path: '/test/:number?', component: Test
         }
     ]
 };

@@ -1,25 +1,27 @@
 <script setup lang="ts">
-import { provide, ref, type Ref } from 'vue';
-import { type SelectOption } from 'naive-ui'
+import { provide, ref, watch, type Ref } from 'vue';
+import { c, type SelectOption } from 'naive-ui'
 import { BASE_URL } from '@/Utils/constant';
 import { useUserInfoStore } from '@/Stores/UserInfoStore';
 import { useAxiosStore } from '@/Stores/AxiosStore';
+import { useFileBrowserStore } from '@/Stores/FileBrowserStore';
 import { type FileUnit } from '@/Utils/Interfaces/FileBrowser';
 import FileBrowserOption from '@/Components/FileBrowser/FileBrowserOption.vue';
 import FileBrowserBody from '@/Components/FileBrowser/FileBrowserBody.vue';
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
 
 const userInfo = useUserInfoStore();
 const axios = useAxiosStore();
+const filebrowserInfo = useFileBrowserStore();
+const route = useRoute();
+const router = useRouter();
 
-const selectedDir: Ref<string | null> = ref(window.localStorage.getItem('selectedDir'));
-const temp_rpStack = window.localStorage.getItem('relativePathStack');
-const relativePathStack: Ref<string[]> = ref(temp_rpStack == null || temp_rpStack.length == 0 ? [] : temp_rpStack!.split('/'));
-
+const selectedDir: Ref<string | null> = storeToRefs(filebrowserInfo).selectedDir;
+const relativePathStack: Ref<string[]> = storeToRefs(filebrowserInfo).relativePathStack;
 const tableDataDir: Ref<FileUnit[]> = ref([]);
 const tableDataFile: Ref<FileUnit[]> = ref([]);
 
-provide('selectedDir', selectedDir);
-provide('relativePathStack', relativePathStack);
 provide('tableDataDir', tableDataDir);
 provide('tableDataFile', tableDataFile);
 
@@ -27,18 +29,6 @@ provide('selectDir', select_dir);
 provide('enterDir', enter_dir);
 provide('returnSuperior', return_superior);
 provide('updateFileTable', update_FileTable);
-
-
-function return_superior(index?: number) {
-    if (typeof (index) === 'number') {
-        relativePathStack.value = relativePathStack.value.slice(0, index + 1);
-    }
-    else {
-        relativePathStack.value.pop();
-    }
-    window.localStorage.setItem('relativePathStack', relativePathStack.value.join('/'));
-    update_FileTable();
-}
 
 function update_FileTable() {
     tableDataDir.value = [];
@@ -73,20 +63,115 @@ function update_FileTable() {
     )
 }
 
+function return_superior(index?: number) {
+    if (typeof (index) === 'number') {
+        relativePathStack.value = relativePathStack.value.slice(0, index + 1);
+    }
+    else {
+        relativePathStack.value.pop();
+    }
+    router.push({
+        name: 'filebrowser',
+        params: {
+            dir: selectedDir.value
+        },
+        query: {
+            relativepath: relativePathStack.value.join('/')
+        }
+    });
+}
+
 function select_dir(value: string, _: SelectOption) {
     selectedDir.value = value;
     window.localStorage.setItem('selectedDir', value);
     relativePathStack.value = [];
-    window.localStorage.removeItem('relativePathStack');
-    update_FileTable();
+    router.push({
+        name: 'filebrowser',
+        params: {
+            dir: selectedDir.value
+        },
+        query: {
+            relativepath: relativePathStack.value.join('/')
+        }
+    });
 }
 
 function enter_dir(dirname: string) {
     relativePathStack.value.push(dirname);
-    window.localStorage.setItem('relativePathStack', relativePathStack.value.join('/'));
-    update_FileTable();
+    router.push({
+        name: 'filebrowser',
+        params: {
+            dir: selectedDir.value
+        },
+        query: {
+            relativepath: relativePathStack.value.join('/')
+        }
+    });
 }
 
+function init() {
+    let route_dir = route.params.dir as string;
+    let route_relativepath = route.query.relativepath as string;
+    let need_relativepath = false;
+    if (route_dir == '' || route_dir == undefined) {
+        let local_dir = window.localStorage.getItem('selectedDir');
+        if (local_dir == null) {
+            selectedDir.value = null;
+            window.localStorage.removeItem('selectedDir');
+            relativePathStack.value = [];
+        }
+        else {
+            selectedDir.value = local_dir;
+            need_relativepath = true;
+        }
+    }
+    else {
+        selectedDir.value = route_dir;
+        window.localStorage.setItem('selectedDir', route_dir);
+        need_relativepath = true;
+    }
+
+    if (need_relativepath) {
+        if (route_relativepath == '' || route_relativepath == undefined) {
+            let local_relativepath = window.localStorage.getItem('relativePathStack');
+            if (local_relativepath == null) {
+                relativePathStack.value = [];
+            }
+            else {
+                relativePathStack.value = local_relativepath.split('/');
+            }
+        }
+        else {
+            relativePathStack.value = route_relativepath.split('/');
+        }
+    }
+}
+
+function route_update(route_dir: string, route_relativepath: string) {
+    if (route_dir == '' || route_dir == undefined) {
+        selectedDir.value = null;
+        relativePathStack.value = [];
+    }
+    else {
+        selectedDir.value = route_dir;
+        window.localStorage.setItem('selectedDir', route_dir);
+        if (route_relativepath == '' || route_relativepath == undefined) {
+            relativePathStack.value = [];
+            window.localStorage.removeItem('relativePathStack');
+        }
+        else {
+            relativePathStack.value = route_relativepath.split('/');
+            window.localStorage.setItem('relativePathStack', route_relativepath);
+        }
+    }
+}
+
+onBeforeRouteUpdate(async (to, from) => {
+    route_update(to.params.dir as string, to.query.relativepath as string);
+    update_FileTable();
+});
+
+init();
 </script>
 
 <template>

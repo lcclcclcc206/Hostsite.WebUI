@@ -63,11 +63,12 @@ function redirect_to_login() {
           <RouterView />
         </div>
         <div class="app-footer">
-          Servered by lcc206
+          <div>
+            <p style="font-weight: 300;">Servered by lcc206</p>
+          </div>
         </div>
       </div>
     </n-config-provider>
-
   </main>
 </template>
 
@@ -90,6 +91,9 @@ function redirect_to_login() {
 }
 
 .app-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   background: rgba(128, 128, 128, 0.2);
   padding: 24px;
 }

@@ -5,13 +5,16 @@ import { type DirOption } from '@/Utils/Interfaces/FileBrowser';
 import { BASE_URL } from '@/Utils/constant';
 import { useUserInfoStore } from '@/Stores/UserInfoStore';
 import { useAxiosStore } from '@/Stores/AxiosStore';
+import { useFileBrowserStore } from '@/Stores/FileBrowserStore';
 import NewFolderPanel from '@/Components/FileBrowser/NewFolderPanel.vue';
+import { storeToRefs } from 'pinia';
 
 const userInfo = useUserInfoStore();
 const axios = useAxiosStore();
+const filebrowserInfo = useFileBrowserStore();
 
-const selectedDir = inject('selectedDir') as Ref<string | null>;
-const relativePathStack = inject('relativePathStack') as Ref<string[]>;
+const selectedDir: Ref<string | null> = storeToRefs(filebrowserInfo).selectedDir;
+const relativePathStack: Ref<string[]> = storeToRefs(filebrowserInfo).relativePathStack;
 
 const selectDir = inject('selectDir') as (value: string, _: SelectOption) => void;
 const return_superior = inject('returnSuperior') as (index?: number) => void;
@@ -70,9 +73,9 @@ if (selectedDir.value != null) {
                     返回上级
                 </n-button>
             </div>
-            <div class="file-operation-list">
-                <n-button v-if="selectedDir != null && userInfo.token != null" @click="showNewFolderPanel = true">新建文件夹</n-button>
-                <n-upload v-if="selectedDir != null && userInfo.token != null" multiple
+            <div class="file-operation-list" v-if="selectedDir != null && userInfo.token != null">
+                <n-button @click="showNewFolderPanel = true">新建文件夹</n-button>
+                <n-upload multiple
                     :action='`${BASE_URL}/${selectedDir}/upload?relative_path=${encodeURIComponent(relativePathStack.join("/"))}`'
                     :headers="{ 'Authorization': `${userInfo.token.token_type} ${userInfo.token.access_token}` }"
                     :custom-request="uploadfile_customRequest">

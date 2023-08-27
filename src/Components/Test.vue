@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
 
-function test() {
-    console.log('h');
-    router.push({ name: 'filebrowser' });
-}
+console.log(route.params.dir);
+console.log(route.query.relativePathStack);
 </script>
 
 <template>
     <h1>Hello</h1>
-    <button @click="test">test</button>
 </template>

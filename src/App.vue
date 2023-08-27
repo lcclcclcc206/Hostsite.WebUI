@@ -4,9 +4,11 @@ import { NButton, NDropdown, NLayout } from 'naive-ui'
 import { NConfigProvider } from 'naive-ui'
 import { zhCN, dateZhCN } from 'naive-ui'
 import { useUserInfoStore } from '@/Stores/UserInfoStore';
+import { useFileBrowserStore } from '@/Stores/FileBrowserStore';
 
 const userInfo = useUserInfoStore();
 const router = useRouter();
+const filebrowserInfo = useFileBrowserStore();
 
 const user_options = [
   {
@@ -47,7 +49,7 @@ function redirect_to_login() {
             <span class="navbar-content">
               <span class="navbar-content-list" v-if="userInfo.token != null">
                 <RouterLink to="/home">主页</RouterLink>
-                <RouterLink to="/filebrowser">文件浏览</RouterLink>
+                <RouterLink :to="filebrowserInfo.get_routePath()">文件浏览</RouterLink>
                 <!-- <RouterLink to="/Test">测试</RouterLink> -->
               </span>
             </span>

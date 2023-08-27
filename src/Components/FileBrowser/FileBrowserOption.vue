@@ -58,9 +58,6 @@ function init_DirAccessList() {
 }
 
 init_DirAccessList();
-if (selectedDir.value != null) {
-    update_FileTable();
-}
 </script>
 
 <template>

@@ -8,7 +8,7 @@ import { useFileBrowserStore } from '@/Stores/FileBrowserStore';
 import { type FileUnit } from '@/Utils/Interfaces/FileBrowser';
 import FileBrowserOption from '@/Components/FileBrowser/FileBrowserOption.vue';
 import FileBrowserBody from '@/Components/FileBrowser/FileBrowserBody.vue';
-import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router';
+import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 
 const userInfo = useUserInfoStore();
@@ -145,6 +145,20 @@ function init() {
             relativePathStack.value = route_relativepath.split('/');
         }
     }
+
+    router.replace({
+        name: 'filebrowser',
+        params: {
+            dir: selectedDir.value
+        },
+        query: {
+            relativepath: relativePathStack.value.join('/')
+        }
+    });
+
+    if (selectedDir.value != null) {
+        update_FileTable();
+    }
 }
 
 function route_update(route_dir: string, route_relativepath: string) {
@@ -167,6 +181,10 @@ function route_update(route_dir: string, route_relativepath: string) {
 }
 
 onBeforeRouteUpdate(async (to, from) => {
+    let dir = from.params.dir;
+    if (dir == '' || dir == undefined)
+        return;
+
     route_update(to.params.dir as string, to.query.relativepath as string);
     update_FileTable();
 });

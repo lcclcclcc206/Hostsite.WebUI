@@ -182,7 +182,8 @@ function route_update(route_dir: string, route_relativepath: string) {
 
 onBeforeRouteUpdate(async (to, from) => {
     let dir = from.params.dir;
-    if (dir == '' || dir == undefined)
+    console.log(to.params.dir);
+    if ((dir == '' || dir == undefined) && (to.params.dir == '' || to.params.dir == undefined))
         return;
 
     route_update(to.params.dir as string, to.query.relativepath as string);

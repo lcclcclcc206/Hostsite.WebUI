@@ -31,6 +31,9 @@ provide('returnSuperior', return_superior);
 provide('updateFileTable', update_FileTable);
 
 function update_FileTable() {
+    console.log('update');
+    if (selectedDir.value == null)
+        return;
     tableDataDir.value = [];
     tableDataFile.value = [];
     let query = '';
@@ -79,6 +82,8 @@ function return_superior(index?: number) {
             relativepath: relativePathStack.value.join('/')
         }
     });
+    // record_update(selectedDir.value as string, relativePathStack.value.join('/'));
+    // update_FileTable();
 }
 
 function select_dir(value: string, _: SelectOption) {
@@ -94,6 +99,8 @@ function select_dir(value: string, _: SelectOption) {
             relativepath: relativePathStack.value.join('/')
         }
     });
+    // record_update(selectedDir.value as string, relativePathStack.value.join('/'));
+    // update_FileTable();
 }
 
 function enter_dir(dirname: string) {
@@ -107,6 +114,8 @@ function enter_dir(dirname: string) {
             relativepath: relativePathStack.value.join('/')
         }
     });
+    // record_update(selectedDir.value as string, relativePathStack.value.join('/'));
+    // update_FileTable();
 }
 
 function init() {
@@ -146,22 +155,20 @@ function init() {
         }
     }
 
-    router.replace({
-        name: 'filebrowser',
-        params: {
-            dir: selectedDir.value
-        },
-        query: {
-            relativepath: relativePathStack.value.join('/')
-        }
-    });
+    // router.replace({
+    //     name: 'filebrowser',
+    //     params: {
+    //         dir: selectedDir.value
+    //     },
+    //     query: {
+    //         relativepath: relativePathStack.value.join('/')
+    //     },
+    // });
 
-    if (selectedDir.value != null) {
-        update_FileTable();
-    }
+    update_FileTable();
 }
 
-function route_update(route_dir: string, route_relativepath: string) {
+function record_update(route_dir: string, route_relativepath: string) {
     if (route_dir == '' || route_dir == undefined) {
         selectedDir.value = null;
         relativePathStack.value = [];
@@ -181,12 +188,7 @@ function route_update(route_dir: string, route_relativepath: string) {
 }
 
 onBeforeRouteUpdate(async (to, from) => {
-    let dir = from.params.dir;
-    console.log(to.params.dir);
-    if ((dir == '' || dir == undefined) && (to.params.dir == '' || to.params.dir == undefined))
-        return;
-
-    route_update(to.params.dir as string, to.query.relativepath as string);
+    record_update(to.params.dir as string, to.query.relativepath as string);
     update_FileTable();
 });
 
